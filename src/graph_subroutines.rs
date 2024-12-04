@@ -12,34 +12,17 @@ pub struct Graph {
     pub outedges: AdjacencyLists,
     pub id_to_node: Vec<usize>, // Mapping from index to NodeID
 }
-
 impl Graph {
-    pub fn calculate_out_degree(&self) -> Vec<(usize, usize)> {
-        self.outedges
-            .iter()
-            .enumerate()
-            .map(|(node, edges)| (node, edges.len()))
-            .collect()
-    }
-    pub fn remove_node(&mut self, node: usize) {
-        // Clear all outgoing edges of the node
-        self.outedges[node].clear();
-
-        // Remove incoming edges to the node
-        for neighbors in &mut self.outedges {
-            neighbors.retain(|&neighbor| neighbor != node);
+    fn add_directed_edges(&mut self, edges: &ListOfEdges) {
+        for &(u, v) in edges {
+            self.outedges[u].push(v);
         }
     }
-    pub fn calculate_density(&self) -> f64 {
-        let total_edges: usize = self.outedges.iter().map(|edges| edges.len()).sum();
-        let total_nodes = self.outedges.iter().filter(|edges| !edges.is_empty()).count();
-        if total_nodes == 0 {
-            0.0
-        } else {
-            total_edges as f64 / total_nodes as f64
+    fn sort_graph_lists(&mut self) {
+        for neighbors in self.outedges.iter_mut() {
+            neighbors.sort();
         }
     }
-
     pub fn read_file(file_name: &str) -> Graph {
         let file = File::open(file_name).unwrap();
         let reader = io::BufReader::new(file);
@@ -76,23 +59,6 @@ impl Graph {
         graph.sort_graph_lists();
         graph
     }
-    pub fn print_vertex(&self, vertex: usize) {
-        if vertex >= self.n {
-            println!("Vertex {} does not exist in the graph.", vertex);
-            return;
-        }
-
-        // Map the internal index back to the original NodeID
-        let original_node = self.id_to_node[vertex];
-
-        // Retrieve the outgoing edges and map them back to NodeIDs
-        let edges: Vec<_> = self.outedges[vertex]
-            .iter()
-            .map(|&v| self.id_to_node[v])
-            .collect();
-
-        println!("Vertex (NodeID) {}: Edges -> {:?}", original_node, edges);
-    }
     fn map_node(
         node_map: &mut HashMap<usize, usize>,
         id_to_node: &mut Vec<usize>,
@@ -106,16 +72,36 @@ impl Graph {
             idx
         })
     }
-
-    fn add_directed_edges(&mut self, edges: &ListOfEdges) {
-        for &(u, v) in edges {
-            self.outedges[u].push(v);
+    pub fn calculate_out_degree(&self) -> Vec<(usize, usize)> {
+        self.outedges
+            .iter()
+            .enumerate()
+            .map(|(node, edges)| (node, edges.len()))
+            .collect()
+    }
+    pub fn calculate_density(&self) -> f64 {
+        let total_edges: usize = self.outedges.iter().map(|edges| edges.len()).sum();
+        let total_nodes = self.outedges.iter().filter(|edges| !edges.is_empty()).count();
+        if total_nodes == 0 {
+            0.0
+        } else {
+            total_edges as f64 / (total_nodes as f64)
         }
     }
-
-    fn sort_graph_lists(&mut self) {
-        for neighbors in self.outedges.iter_mut() {
-            neighbors.sort();
+    pub fn print_vertex(&self, vertex: usize) {
+        if vertex >= self.n {
+            println!("Vertex {} does not exist in the graph.", vertex);
+            return;
         }
+        // Map the internal index back to the original NodeID
+        let original_node = self.id_to_node[vertex];
+
+        // Retrieve the outgoing edges and map them back to NodeIDs
+        let edges: Vec<_> = self.outedges[vertex]
+            .iter()
+            .map(|&v| self.id_to_node[v])
+            .collect();
+
+        println!("Vertex (NodeID) {}: Edges -> {:?}", original_node, edges);
     }
 }

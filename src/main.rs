@@ -20,7 +20,7 @@ fn main() {
     };
     
     // Find the top 10 densest components
-    let top_components = find_densest_components(&denser_graph, &component, component_count);
+    let top_components = find_densest_components(&denser_graph, &component);
 
     // Print the results
     println!("Top 10 Densest Components:");
@@ -29,11 +29,11 @@ fn main() {
     }
     
     // Calculate the average density
-    let avg_density = calculate_average_density(&denser_graph, &component, component_count);
+    let avg_density = calculate_average_density(&denser_graph, &component);
     println!("Average Density Across All Components: {:.4}", avg_density);
 }
 
-fn calculate_average_density(graph: &Graph, component: &Vec<Option<usize>>, num_components: usize) -> f64 {
+fn calculate_average_density(graph: &Graph, component: &Vec<Option<usize>>) -> f64 {
     let mut vertex_count: HashMap<usize, Vec<usize>> = HashMap::new();
 
     // Group vertices by component
@@ -44,46 +44,38 @@ fn calculate_average_density(graph: &Graph, component: &Vec<Option<usize>>, num_
     }
 
     let mut total_density = 0.0;
-    let mut valid_components = 0;
 
     // Calculate density for each component
     for (_, vertices) in vertex_count.iter() {
-        if !vertices.is_empty() {
-            let mut subgraph = Graph {
-                n: vertices.len(),
-                outedges: vec![Vec::new(); vertices.len()],
-                id_to_node: vertices.clone(),
-            };
+        let mut subgraph = Graph {
+            n: vertices.len(),
+            outedges: vec![Vec::new(); vertices.len()],
+            id_to_node: vertices.clone(),
+        };
 
-            let vertex_map: HashMap<usize, usize> = vertices
-                .iter()
-                .enumerate()
-                .map(|(index, &v)| (v, index))
-                .collect();
+        let vertex_map: HashMap<usize, usize> = vertices
+            .iter()
+            .enumerate()
+            .map(|(index, &v)| (v, index))
+            .collect();
 
             // Build subgraph for the component
-            for &v in vertices {
-                let v_new = vertex_map[&v];
-                for &neighbor in &graph.outedges[v] {
-                    if let Some(&neighbor_new) = vertex_map.get(&neighbor) {
-                        subgraph.outedges[v_new].push(neighbor_new);
-                    }
+        for &v in vertices {
+            let v_new = vertex_map[&v];
+            for &neighbor in &graph.outedges[v] {
+                if let Some(&neighbor_new) = vertex_map.get(&neighbor) {
+                    subgraph.outedges[v_new].push(neighbor_new);
                 }
             }
-
-            // Calculate density for the subgraph
-            let density = subgraph.calculate_density();
-            total_density += density;
-            valid_components += 1;
         }
-    }
+
+         // Calculate density for the subgraph
+        let density = subgraph.calculate_density();
+        total_density += density;
+        }
 
     // Calculate average density
-    if valid_components == 0 {
-        0.0
-    } else {
-        total_density / valid_components as f64
-    }
+    total_density / vertex_count.len() as f64
 }
 
 
@@ -97,10 +89,9 @@ fn mark_component_dfs(vertex:Vertex, graph:&Graph, component:&mut Vec<Option<Com
             mark_component_dfs(*w, graph, component, component_no);
         }
     }
-
 }
 
-fn find_densest_components(graph: &Graph, component:&Vec<Option<Component>>, num_components: usize) 
+fn find_densest_components(graph: &Graph, component:&Vec<Option<Component>>) 
     -> Vec<(usize, f64, Vec<usize>)>{
         let mut vertex_count: HashMap<usize, Vec<usize>> = HashMap::new();
 
