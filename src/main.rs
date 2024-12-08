@@ -169,3 +169,35 @@ fn denser_subgraph(graph: &mut Graph) -> Graph{
     }
     new_graph
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_find_densest_components() {
+        let graph = Graph {
+            n: 6,
+            outedges: vec![
+                vec![1],    // Node 0 -> Node 1
+                vec![],    // Node 1 has no outgoing edges
+                vec![3, 4], // Node 2 -> Nodes 3, 4
+                vec![2],    // Node 3 -> Node 2
+                vec![],     // Node 4 has no outgoing edges
+                vec![],     // Node 5 is isolated
+            ],
+            id_to_node: vec![0, 1, 2, 3, 4, 5],
+        };
+    
+        let component = vec![Some(1), Some(1), Some(2), Some(2), Some(2), None];
+    
+        let expected = vec![
+            (2, 1.0, vec![2, 3, 4]), // Component 2: Density = 3 / 3 = 1.0
+            (1, 0.5, vec![0, 1]),    // Component 1: Density = 1 / 2 = 0.5
+        ];
+    
+        let result = find_densest_components(&graph, &component);
+    
+        assert_eq!(result, expected);
+    }
+}
+

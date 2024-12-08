@@ -81,27 +81,81 @@ impl Graph {
     }
     pub fn calculate_density(&self) -> f64 {
         let total_edges: usize = self.outedges.iter().map(|edges| edges.len()).sum();
-        let total_nodes = self.outedges.iter().filter(|edges| !edges.is_empty()).count();
+        let total_nodes = self.n; // Use total number of nodes directly
         if total_nodes == 0 {
             0.0
         } else {
-            total_edges as f64 / (total_nodes as f64)
+            total_edges as f64 / total_nodes as f64
         }
     }
-    pub fn print_vertex(&self, vertex: usize) {
-        if vertex >= self.n {
-            println!("Vertex {} does not exist in the graph.", vertex);
-            return;
-        }
-        // Map the internal index back to the original NodeID
-        let original_node = self.id_to_node[vertex];
+}
 
-        // Retrieve the outgoing edges and map them back to NodeIDs
-        let edges: Vec<_> = self.outedges[vertex]
-            .iter()
-            .map(|&v| self.id_to_node[v])
-            .collect();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-        println!("Vertex (NodeID) {}: Edges -> {:?}", original_node, edges);
+    #[test]
+    fn test_empty_graph() {
+        // Generate empty graph 
+        let graph = Graph {
+            n: 0,
+            outedges: Vec::new(),
+            id_to_node: Vec::new(),
+        };
+        assert_eq!(graph.n, 0);
+        assert!(graph.outedges.is_empty());
+        assert!(graph.id_to_node.is_empty());
+    }
+    #[test]
+    fn test_single_edge_graph() {
+        // Generatte graph with one edgee
+        let edges = vec![(0, 1)];
+        let mut graph = Graph {
+            n: 2,
+            outedges: vec![Vec::new(); 2],
+            id_to_node: vec![1, 2],
+        };
+        graph.add_directed_edges(&edges);
+        assert_eq!(graph.outedges[0], vec![1]);
+        assert_eq!(graph.outedges[1], vec![]);
+    }
+    #[test]
+    fn test_outdegree(){
+        let graph = Graph{
+            n: 3,
+            outedges: vec![
+                vec![1, 2], // Node 0 has edges to nodes 1 and 2
+                vec![2],    // Node 1 has an edge to node 2
+                vec![],     // Node 2 has no outgoing edges
+            ],
+            id_to_node: vec![0, 1, 2], 
+        };
+
+        // Expected out-degree
+        let expected_out_degree = vec![
+            (0, 2), 
+            (1, 1), 
+            (2, 0),
+        ];
+        
+        // Calculated out-degree
+        let actual_out_degree = graph.calculate_out_degree();
+
+        // Check if out-degrees match
+        assert_eq!(actual_out_degree, expected_out_degree);
+    }
+    #[test]
+    fn test_density_calculation() {
+        // Calculate density of small graph with 4 nodes and 5 directed edges
+        let graph = Graph {
+            n: 4,
+            outedges: vec![vec![1, 2], vec![0, 2], vec![3], vec![]],
+            id_to_node: vec![0, 1, 2, 3], 
+        };
+
+        let expected_density = 5.0 / 4.0;
+
+        // Checking if the calculated density matches the expected value
+        assert_eq!(graph.calculate_density(), expected_density);
     }
 }
