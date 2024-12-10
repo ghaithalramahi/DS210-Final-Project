@@ -7,11 +7,13 @@ fn main() {
 
     // Generate the citation graph
     let mut citation_graph = Graph::read_file(file_name);
+    // Remove loosely connected nodes
     let denser_graph = denser_subgraph(&mut citation_graph);
 
     let mut component = vec![None;denser_graph.n];
     let mut component_count = 0;
 
+    // Assigning components to each node in denser graph
     for v in 0..denser_graph.n {
         if let None = component[v] {
             component_count += 1;
@@ -59,7 +61,7 @@ fn calculate_average_density(graph: &Graph, component: &Vec<Option<usize>>) -> f
             .map(|(index, &v)| (v, index))
             .collect();
 
-            // Build subgraph for the component
+        // Build subgraph for the component
         for &v in vertices {
             let v_new = vertex_map[&v];
             for &neighbor in &graph.outedges[v] {

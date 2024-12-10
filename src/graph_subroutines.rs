@@ -9,7 +9,7 @@ use std::collections::HashMap;
 #[derive(Debug, Clone)]
 pub struct Graph {
     pub n: usize, // Number of unique nodes
-    pub outedges: AdjacencyLists,
+    pub outedges: AdjacencyLists, // Adjacency List 
     pub id_to_node: Vec<usize>, // Mapping from index to NodeID
 }
 impl Graph {
@@ -81,7 +81,7 @@ impl Graph {
     }
     pub fn calculate_density(&self) -> f64 {
         let total_edges: usize = self.outedges.iter().map(|edges| edges.len()).sum();
-        let total_nodes = self.n; // Use total number of nodes directly
+        let total_nodes = self.n; 
         if total_nodes == 0 {
             0.0
         } else {
@@ -108,7 +108,7 @@ mod tests {
     }
     #[test]
     fn test_single_edge_graph() {
-        // Generatte graph with one edgee
+        // Generate graph with one edge
         let edges = vec![(0, 1)];
         let mut graph = Graph {
             n: 2,
